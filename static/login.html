@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - IoT</title>
+    <title id="page-title">Đăng nhập - IoT</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="dark-theme">
@@ -11,30 +11,76 @@
         <div class="auth-box">
             <div class="auth-logo">
                 <h1>🏠 IoT Platform</h1>
-                <p>Đăng nhập để tiếp tục</p>
+                <p id="subtitle">Đăng nhập để tiếp tục</p>
             </div>
             <div id="error-message" class="error-message"></div>
             <form onsubmit="login(event)">
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" placeholder="Nhập email" required>
+                    <label id="label-email">Email</label>
+                    <input type="email" id="email" placeholder="" required>
                 </div>
                 <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" id="password" placeholder="Nhập mật khẩu" required>
+                    <label id="label-password">Mật khẩu</label>
+                    <input type="password" id="password" placeholder="" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                <button type="submit" class="btn btn-primary" id="btn-login">Đăng nhập</button>
             </form>
             <div class="mt-20 text-center">
-                <p><a href="forgot-password.html">Quên mật khẩu?</a></p>
-                <p style="margin-top:10px">Chưa có tài khoản? <a href="register.html">Đăng ký</a></p>
+                <p><a href="forgot-password.html" id="link-forgot">Quên mật khẩu?</a></p>
+                <p style="margin-top:10px"><span id="txt-no-account">Chưa có tài khoản?</span> <a href="register.html" id="link-register">Đăng ký</a></p>
+            </div>
+            <div class="mt-20 text-center">
+                <button class="lang-btn-small" onclick="setLang('vi')">🇻🇳</button>
+                <button class="lang-btn-small" onclick="setLang('en')">🇺🇸</button>
             </div>
         </div>
     </div>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+        const texts = {
+            vi: {
+                pageTitle: 'Đăng nhập - IoT', subtitle: 'Đăng nhập để tiếp tục',
+                labelEmail: 'Email', labelPassword: 'Mật khẩu', btnLogin: 'Đăng nhập',
+                linkForgot: 'Quên mật khẩu?', txtNoAccount: 'Chưa có tài khoản?',
+                linkRegister: 'Đăng ký', errConnect: 'Không thể kết nối server!',
+                errLogin: 'Đăng nhập thất bại!', phEmail: 'Nhập email', phPassword: 'Nhập mật khẩu'
+            },
+            en: {
+                pageTitle: 'Login - IoT', subtitle: 'Login to continue',
+                labelEmail: 'Email', labelPassword: 'Password', btnLogin: 'Login',
+                linkForgot: 'Forgot password?', txtNoAccount: "Don't have account?",
+                linkRegister: 'Register', errConnect: 'Cannot connect to server!',
+                errLogin: 'Login failed!', phEmail: 'Enter email', phPassword: 'Enter password'
+            }
+        };
+        
+        let lang = localStorage.getItem('language') || 'vi';
+        let txt = texts[lang];
+        
+        function applyLanguage() {
+            document.getElementById('page-title').textContent = txt.pageTitle;
+            document.getElementById('subtitle').textContent = txt.subtitle;
+            document.getElementById('label-email').textContent = txt.labelEmail;
+            document.getElementById('label-password').textContent = txt.labelPassword;
+            document.getElementById('btn-login').textContent = txt.btnLogin;
+            document.getElementById('link-forgot').textContent = txt.linkForgot;
+            document.getElementById('txt-no-account').textContent = txt.txtNoAccount;
+            document.getElementById('link-register').textContent = txt.linkRegister;
+            document.getElementById('email').placeholder = txt.phEmail;
+            document.getElementById('password').placeholder = txt.phPassword;
+        }
+        
+        function setLang(newLang) {
+            localStorage.setItem('language', newLang);
+            location.reload();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+            applyLanguage();
+        });
+        
         async function login(e) {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
@@ -51,9 +97,13 @@
                     localStorage.setItem('theme', data.user.theme || 'dark');
                     localStorage.setItem('language', data.user.language || 'vi');
                     window.location.href = 'dashboard.html';
-                } else showError(data.error || 'Đăng nhập thất bại!');
-            } catch (e) { showError('Không thể kết nối server!'); }
+                } else showError(data.error || txt.errLogin);
+            } catch (e) { showError(txt.errConnect); }
         }
     </script>
+    <style>
+        .lang-btn-small { background: transparent; border: 1px solid #444; padding: 5px 10px; margin: 0 5px; cursor: pointer; border-radius: 4px; }
+        .lang-btn-small:hover { border-color: #4facfe; }
+    </style>
 </body>
 </html>
