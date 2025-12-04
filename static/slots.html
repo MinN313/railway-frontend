@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Slots - IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-logo"><h2>🏠 IoT</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html"><span class="icon">📊</span><span>Dashboard</span></a></li>
+                <li><a href="slots.html" class="active"><span class="icon">📱</span><span>Quản lý Slots</span></a></li>
+                <li><a href="admin.html"><span class="icon">👑</span><span>Admin</span></a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span><span>Cài đặt</span></a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <header class="header">
+                <h1>📱 Quản lý Slots</h1>
+                <div class="header-right">
+                    <button class="btn btn-primary" onclick="showAddForm()">+ Thêm Slot</button>
+                    <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+                </div>
+            </header>
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Slot</th><th>Tên</th><th>Loại</th><th>Đơn vị</th><th>Vị trí</th><th>Hành động</th></tr></thead>
+                    <tbody id="slots-tbody"><tr><td colspan="6" class="text-center">Đang tải...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="settings-section mt-20">
+                <h3>📖 Các loại Slot</h3>
+                <p><span class="badge badge-value">VALUE</span> - Giá trị số (nhiệt độ, độ ẩm...)</p>
+                <p><span class="badge badge-status">STATUS</span> - Trạng thái ON/OFF</p>
+                <p><span class="badge badge-control">CONTROL</span> - Điều khiển ON/OFF</p>
+                <p><span class="badge badge-camera">CAMERA</span> - Camera stream</p>
+                <p><span class="badge badge-chart">CHART</span> - Biểu đồ theo thời gian</p>
+            </div>
+        </main>
+    </div>
+    <div class="modal" id="slot-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="form-title">Thêm Slot</h2>
+                <button class="modal-close" onclick="hideModal()">&times;</button>
+            </div>
+            <form onsubmit="submitSlotForm(event)" id="slot-form">
+                <div class="form-group"><label>Số Slot</label><select id="slot-number" required></select></div>
+                <div class="form-group"><label>Tên</label><input type="text" id="slot-name" placeholder="VD: Nhiệt độ phòng" required></div>
+                <div class="form-group"><label>Loại</label>
+                    <select id="slot-type" onchange="onTypeChange()">
+                        <option value="value">📊 Giá trị số</option>
+                        <option value="status">🔔 Trạng thái</option>
+                        <option value="control">💡 Điều khiển</option>
+                        <option value="camera">📷 Camera</option>
+                        <option value="chart">📈 Biểu đồ</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Icon</label><input type="text" id="slot-icon" placeholder="🌡️"></div>
+                <div class="form-group" id="unit-group"><label>Đơn vị</label><input type="text" id="slot-unit" placeholder="°C, %, lux..."></div>
+                <div class="form-group"><label>Vị trí</label><input type="text" id="slot-location" placeholder="Phòng khách"></div>
+                <div class="form-group" id="stream-group" style="display:none"><label>Stream URL</label><input type="text" id="slot-stream-url" placeholder="http://192.168.1.x/stream"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/slots.js"></script>
+</body>
+</html>

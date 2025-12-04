@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-logo"><h2>🏠 IoT</h2></div>
+            <ul class="sidebar-menu" id="sidebar-menu">
+                <li><a href="dashboard.html" class="active"><span class="icon">📊</span><span>Dashboard</span></a></li>
+                <li id="menu-slots" style="display:none"><a href="slots.html"><span class="icon">📱</span><span>Quản lý Slots</span></a></li>
+                <li id="menu-admin" style="display:none"><a href="admin.html"><span class="icon">👑</span><span>Admin</span></a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span><span>Cài đặt</span></a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>📊 Dashboard</h1>
+                    <div id="mqtt-status"></div>
+                </div>
+                <div class="header-right">
+                    <div id="clock"></div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name">User</div>
+                        <div class="user-role" id="user-role">USER</div>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+                </div>
+            </header>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon">📱</div><div class="stat-value" id="stat-slots">0</div><div class="stat-label">Tổng Slots</div></div>
+                <div class="stat-card"><div class="stat-icon">📷</div><div class="stat-value" id="stat-cameras">0</div><div class="stat-label">Camera</div></div>
+                <div class="stat-card"><div class="stat-icon">💡</div><div class="stat-value" id="stat-controls">0</div><div class="stat-label">Điều khiển</div></div>
+                <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="stat-charts">0</div><div class="stat-label">Biểu đồ</div></div>
+            </div>
+            <div id="slots-container"></div>
+        </main>
+    </div>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        const user = getCurrentUser();
+        if (user && user.role === 'admin') {
+            document.getElementById('menu-slots').style.display = 'block';
+            document.getElementById('menu-admin').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

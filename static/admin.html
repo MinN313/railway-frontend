@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-logo"><h2>🏠 IoT</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html"><span class="icon">📊</span><span>Dashboard</span></a></li>
+                <li><a href="slots.html"><span class="icon">📱</span><span>Quản lý Slots</span></a></li>
+                <li><a href="admin.html" class="active"><span class="icon">👑</span><span>Admin</span></a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span><span>Cài đặt</span></a></li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <header class="header">
+                <h1>👑 Quản lý Users</h1>
+                <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+            </header>
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>Email</th><th>Tên</th><th>Role</th><th>Ngày tạo</th><th>Hành động</th></tr></thead>
+                    <tbody id="users-tbody"><tr><td colspan="6" class="text-center">Đang tải...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="settings-section mt-20">
+                <h3>📖 Phân quyền</h3>
+                <p><span class="badge badge-admin">ADMIN</span> - Toàn quyền</p>
+                <p><span class="badge badge-operator">OPERATOR</span> - Xem + Điều khiển</p>
+                <p><span class="badge badge-user">USER</span> - Chỉ xem</p>
+            </div>
+        </main>
+    </div>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth()) return;
+            if (!isAdmin()) { window.location.href = 'dashboard.html'; return; }
+            initSettings(); loadUsers();
+        });
+        async function loadUsers() {
+            const data = await apiCall('/api/admin/users');
+            if (data && data.success) displayUsers(data.data);
+        }
+        function displayUsers(users) {
+            const tbody = document.getElementById('users-tbody');
+            if (!users || users.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có</td></tr>'; return; }
+            tbody.innerHTML = users.map(u => `<tr>
+                <td>${u.id}</td><td>${u.email}</td><td>${u.name || '-'}</td>
+                <td><select onchange="changeRole(${u.id}, this.value)" ${u.email === 'admin@admin.com' ? 'disabled' : ''}>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    <option value="operator" ${u.role === 'operator' ? 'selected' : ''}>Operator</option>
+                    <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                </select></td>
+                <td>${new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
+                <td>
+                    <button class="btn btn-sm btn-edit" onclick="resetPw(${u.id})">🔑</button>
+                    ${u.email !== 'admin@admin.com' ? `<button class="btn btn-sm btn-delete" onclick="deleteUser(${u.id})">🗑️</button>` : ''}
+                </td>
+            </tr>`).join('');
+        }
+        async function changeRole(uid, role) {
+            const res = await apiCall(`/api/admin/users/${uid}/role`, 'PUT', { role });
+            if (res && res.success) showSuccess('Đã đổi role!');
+        }
+        async function resetPw(uid) {
+            const pw = prompt('Mật khẩu mới:', '123456');
+            if (!pw) return;
+            const res = await apiCall(`/api/admin/users/${uid}/reset-password`, 'POST', { new_password: pw });
+            if (res && res.success) showSuccess('Đã reset: ' + pw);
+        }
+        async function deleteUser(uid) {
+            if (!confirm('Xóa user này?')) return;
+            const res = await apiCall(`/api/admin/users/${uid}`, 'DELETE');
+            if (res && res.success) { showSuccess('Đã xóa!'); loadUsers(); }
+        }
+    </script>
+</body>
+</html>
