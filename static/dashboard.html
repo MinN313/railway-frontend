@@ -258,7 +258,25 @@
             return new Date(dateStr).toLocaleDateString('vi-VN');
         }
         
-        function startAutoRefresh() { refreshInterval = setInterval(loadDashboard, REFRESH_INTERVAL); }
+        function startAutoRefresh() { 
+            refreshInterval = setInterval(loadDashboard, REFRESH_INTERVAL);
+            // Refresh camera nhanh hơn (mỗi 600ms)
+            setInterval(refreshCameras, 600);
+        }
+        
+        async function refreshCameras() {
+            const cameraImgs = document.querySelectorAll('[id^="camera-"]');
+            for (const img of cameraImgs) {
+                const slotNum = img.id.replace('camera-', '');
+                if (!img.src.includes('http://') && !img.src.includes('https://192')) {
+                    // Chỉ refresh ảnh MQTT, không refresh stream URL
+                    const data = await apiCall(`/api/camera/${slotNum}`);
+                    if (data && data.success && data.data && data.data.image_data) {
+                        img.src = data.data.image_data;
+                    }
+                }
+            }
+        }
         function startClock() {
             const el = document.getElementById('clock');
             if (!el) return;
