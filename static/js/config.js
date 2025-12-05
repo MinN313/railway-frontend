@@ -1,6 +1,6 @@
 // config.js
 // ⚠️ QUAN TRỌNG: Thay URL backend Railway vào đây sau khi deploy backend
-const API_URL = 'https://BACKEND-URL.up.railway.app';  // <-- THAY URL BACKEND VÀO ĐÂY
+const API_URL = 'https://railway-backend-production-a8b3.up.railway.app';  // <-- THAY URL BACKEND VÀO ĐÂY
 
 const REFRESH_INTERVAL = 5000;
 
