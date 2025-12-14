@@ -29,8 +29,8 @@
             <div id="success-message" class="success-message"></div>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Slot</th><th>Tên</th><th>Loại</th><th>Đơn vị</th><th>Vị trí</th><th>Hành động</th></tr></thead>
-                    <tbody id="slots-tbody"><tr><td colspan="6" class="text-center">Đang tải...</td></tr></tbody>
+                    <thead><tr><th>Slot</th><th>Tên</th><th>Loại</th><th>Đơn vị</th><th>Cảnh báo</th><th>Vị trí</th><th>Hành động</th></tr></thead>
+                    <tbody id="slots-tbody"><tr><td colspan="7" class="text-center">Đang tải...</td></tr></tbody>
                 </table>
             </div>
             <div class="settings-section mt-20">
@@ -65,6 +65,33 @@
                 <div class="form-group" id="unit-group"><label>Đơn vị</label><input type="text" id="slot-unit" placeholder="°C, %, lux..."></div>
                 <div class="form-group"><label>Vị trí</label><input type="text" id="slot-location" placeholder="Phòng khách"></div>
                 <div class="form-group" id="stream-group" style="display:none"><label>Stream URL</label><input type="text" id="slot-stream-url" placeholder="http://192.168.1.x/stream"></div>
+                
+                <!-- Alert Settings -->
+                <div id="alert-group" class="alert-settings">
+                    <h4>⚠️ Cài đặt cảnh báo</h4>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="alert-enabled" onchange="onAlertToggle()">
+                            <span>Bật cảnh báo</span>
+                        </label>
+                    </div>
+                    <div id="alert-thresholds" style="display:none">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>🔵 Ngưỡng thấp</label>
+                                <input type="number" step="any" id="alert-min" placeholder="VD: 10">
+                                <small>Cảnh báo khi giá trị < ngưỡng này</small>
+                            </div>
+                            <div class="form-group">
+                                <label>🔴 Ngưỡng cao</label>
+                                <input type="number" step="any" id="alert-max" placeholder="VD: 40">
+                                <small>Cảnh báo khi giá trị > ngưỡng này</small>
+                            </div>
+                        </div>
+                        <p class="alert-note">📧 Email sẽ được gửi đến tất cả Admin khi vượt ngưỡng</p>
+                    </div>
+                </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="hideModal()">Hủy</button>
                     <button type="submit" class="btn btn-primary">Lưu</button>

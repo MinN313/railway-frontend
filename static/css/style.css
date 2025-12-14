@@ -363,3 +363,150 @@ a:hover { text-decoration: underline; }
     .slots-grid { grid-template-columns: 1fr; }
     .auth-box { padding: 25px; }
 }
+
+/* ===== ALERT SYSTEM ===== */
+.stat-alert { cursor: pointer; transition: all 0.3s; }
+.stat-alert:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(255,71,87,0.3); }
+.stat-alert.has-alerts { 
+    border-color: var(--danger); 
+    animation: pulse-alert 2s infinite; 
+}
+.stat-alert.has-alerts .stat-value { 
+    background: linear-gradient(135deg, #ff4757, #ff6b81); 
+    -webkit-background-clip: text; 
+}
+
+@keyframes pulse-alert {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,87,0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(255,71,87,0); }
+}
+
+/* Alerts Panel */
+.alerts-panel {
+    background: var(--bg-card);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+.alerts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+.alerts-header h3 { margin: 0; font-size: 16px; }
+.alerts-actions { display: flex; gap: 10px; }
+.btn-close { background: transparent; color: var(--text-secondary); border: none; }
+
+.alerts-list { max-height: 300px; overflow-y: auto; }
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s;
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-item:hover { background: var(--bg-primary); }
+.alert-item.unread { background: rgba(255,71,87,0.1); }
+.alert-item.read { opacity: 0.7; }
+.alert-item.high { border-left: 3px solid var(--danger); }
+.alert-item.low { border-left: 3px solid var(--warning); }
+
+.alert-icon { font-size: 24px; }
+.alert-content { flex: 1; }
+.alert-slot { font-weight: 600; margin-bottom: 5px; }
+.alert-message { font-size: 14px; color: var(--text-secondary); }
+.alert-time { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
+.btn-mark-read { padding: 5px 10px; font-size: 12px; }
+.no-alerts { padding: 30px; color: var(--text-secondary); }
+
+/* Slot Card Alert States */
+.slot-card.alert-high {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 15px rgba(255,71,87,0.3);
+}
+.slot-card.alert-low {
+    border-color: var(--warning) !important;
+    box-shadow: 0 0 15px rgba(255,165,2,0.3);
+}
+.slot-value.alert-high { color: var(--danger) !important; }
+.slot-value.alert-low { color: var(--warning) !important; }
+.current-value { font-size: 14px; font-weight: 600; margin-left: 10px; }
+.current-value.alert-high { color: var(--danger); }
+.current-value.alert-low { color: var(--warning); }
+
+.alert-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.alert-indicator.high { background: rgba(255,71,87,0.2); color: var(--danger); }
+.alert-indicator.low { background: rgba(255,165,2,0.2); color: var(--warning); }
+
+.slot-card { position: relative; }
+.slot-thresholds {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    padding: 3px 8px;
+    background: var(--bg-primary);
+    border-radius: 5px;
+    display: inline-block;
+}
+
+/* Alert Settings in Slot Form */
+.alert-settings {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+.alert-settings h4 { margin-bottom: 15px; color: var(--warning); }
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+.form-row .form-group { margin-bottom: 0; }
+.form-row .form-group small {
+    display: block;
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+.alert-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(79,172,254,0.1);
+    border-radius: 8px;
+}
+
+/* Badge Alert */
+.badge-alert {
+    background: rgba(255,165,2,0.2);
+    color: var(--warning);
+    font-size: 11px;
+}

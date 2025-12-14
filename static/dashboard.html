@@ -37,8 +37,23 @@
                 <div class="stat-card"><div class="stat-icon">📱</div><div class="stat-value" id="stat-slots">0</div><div class="stat-label" id="label-total">Tổng Slots</div></div>
                 <div class="stat-card"><div class="stat-icon">📷</div><div class="stat-value" id="stat-cameras">0</div><div class="stat-label">Camera</div></div>
                 <div class="stat-card"><div class="stat-icon">💡</div><div class="stat-value" id="stat-controls">0</div><div class="stat-label" id="label-controls">Điều khiển</div></div>
-                <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" id="stat-charts">0</div><div class="stat-label" id="label-charts">Biểu đồ</div></div>
+                <div class="stat-card stat-alert" id="stat-alert-card" onclick="toggleAlertsPanel()"><div class="stat-icon">⚠️</div><div class="stat-value" id="stat-alerts">0</div><div class="stat-label" id="label-alerts">Cảnh báo</div></div>
             </div>
+            
+            <!-- Alerts Panel -->
+            <div id="alerts-panel" class="alerts-panel" style="display:none">
+                <div class="alerts-header">
+                    <h3>⚠️ <span id="alerts-title">Cảnh báo</span></h3>
+                    <div class="alerts-actions">
+                        <button class="btn btn-sm" onclick="markAllAlertsRead()">✓ Đọc tất cả</button>
+                        <button class="btn btn-sm btn-close" onclick="toggleAlertsPanel()">✕</button>
+                    </div>
+                </div>
+                <div id="alerts-list" class="alerts-list">
+                    <p class="text-center">Đang tải...</p>
+                </div>
+            </div>
+            
             <div id="slots-container"></div>
         </main>
     </div>
@@ -49,18 +64,22 @@
             vi: {
                 navDashboard: 'Dashboard', navSlots: 'Quản lý Slots', navSettings: 'Cài đặt',
                 btnLogout: 'Đăng xuất', labelTotal: 'Tổng Slots', labelControls: 'Điều khiển',
-                labelCharts: 'Biểu đồ', connected: 'Đã kết nối', disconnected: 'Mất kết nối',
+                labelCharts: 'Biểu đồ', labelAlerts: 'Cảnh báo', connected: 'Đã kết nối', disconnected: 'Mất kết nối',
                 value: 'Giá trị số', status: 'Trạng thái', control: 'Điều khiển', camera: 'Camera',
                 chart: 'Biểu đồ', on: 'BẬT', off: 'TẮT', noDevice: 'Chưa có thiết bị',
-                addDevice: 'Thêm thiết bị', justNow: 'Vừa xong', minutesAgo: 'phút trước', hoursAgo: 'giờ trước'
+                addDevice: 'Thêm thiết bị', justNow: 'Vừa xong', minutesAgo: 'phút trước', hoursAgo: 'giờ trước',
+                alertHigh: 'Vượt ngưỡng cao', alertLow: 'Dưới ngưỡng thấp', noAlerts: 'Không có cảnh báo',
+                alertsTitle: 'Cảnh báo'
             },
             en: {
                 navDashboard: 'Dashboard', navSlots: 'Manage Slots', navSettings: 'Settings',
                 btnLogout: 'Logout', labelTotal: 'Total Slots', labelControls: 'Controls',
-                labelCharts: 'Charts', connected: 'Connected', disconnected: 'Disconnected',
+                labelCharts: 'Charts', labelAlerts: 'Alerts', connected: 'Connected', disconnected: 'Disconnected',
                 value: 'Value', status: 'Status', control: 'Control', camera: 'Camera',
                 chart: 'Chart', on: 'ON', off: 'OFF', noDevice: 'No device',
-                addDevice: 'Add device', justNow: 'Just now', minutesAgo: 'min ago', hoursAgo: 'hours ago'
+                addDevice: 'Add device', justNow: 'Just now', minutesAgo: 'min ago', hoursAgo: 'hours ago',
+                alertHigh: 'Above threshold', alertLow: 'Below threshold', noAlerts: 'No alerts',
+                alertsTitle: 'Alerts'
             }
         };
         
@@ -75,8 +94,12 @@
             document.getElementById('btn-logout').textContent = txt.btnLogout;
             document.getElementById('label-total').textContent = txt.labelTotal;
             document.getElementById('label-controls').textContent = txt.labelControls;
-            document.getElementById('label-charts').textContent = txt.labelCharts;
+            document.getElementById('label-alerts').textContent = txt.labelAlerts;
+            document.getElementById('alerts-title').textContent = txt.alertsTitle;
         }
+        
+        let alertsData = [];
+        let alertsStatus = {};
         
         document.addEventListener('DOMContentLoaded', function() {
             if (!checkAuth()) return;
@@ -100,16 +123,24 @@
         async function loadDashboard() {
             const data = await apiCall('/api/dashboard/full');
             if (!data || !data.success) return;
-            displayStats(data.stats);
+            alertsStatus = data.alerts_status || {};
+            displayStats(data.stats, data.unread_alerts);
             displayMqttStatus(data.mqtt);
             displaySlots(data.slots, data.data);
         }
         
-        function displayStats(stats) {
+        function displayStats(stats, unreadAlerts) {
             document.getElementById('stat-slots').textContent = stats.total_slots || 0;
             document.getElementById('stat-cameras').textContent = stats.total_cameras || 0;
             document.getElementById('stat-controls').textContent = stats.total_controls || 0;
-            document.getElementById('stat-charts').textContent = stats.total_charts || 0;
+            document.getElementById('stat-alerts').textContent = unreadAlerts || 0;
+            
+            const alertCard = document.getElementById('stat-alert-card');
+            if (unreadAlerts > 0) {
+                alertCard.classList.add('has-alerts');
+            } else {
+                alertCard.classList.remove('has-alerts');
+            }
         }
         
         function displayMqttStatus(mqtt) {
@@ -134,10 +165,16 @@
                 html += `<div class="slots-section"><h3>📊 ${txt.value}</h3><div class="slots-grid">`;
                 valueSlots.forEach(slot => {
                     const d = data[slot.slot_number];
-                    html += `<div class="slot-card value-card">
+                    const alertState = alertsStatus[slot.slot_number];
+                    const alertClass = alertState ? (alertState.type === 'high' ? 'alert-high' : 'alert-low') : '';
+                    const alertIndicator = alertState ? `<div class="alert-indicator ${alertState.type}">${alertState.type === 'high' ? '🔴 ' + txt.alertHigh : '🔵 ' + txt.alertLow}</div>` : '';
+                    
+                    html += `<div class="slot-card value-card ${alertClass}">
+                        ${alertIndicator}
                         <div class="slot-icon">${slot.icon || '📟'}</div>
                         <div class="slot-name">${slot.name}</div>
-                        <div class="slot-value">${d ? d.value : '--'}<span class="slot-unit">${slot.unit || ''}</span></div>
+                        <div class="slot-value ${alertClass}">${d ? d.value : '--'}<span class="slot-unit">${slot.unit || ''}</span></div>
+                        ${slot.alert_enabled ? `<div class="slot-thresholds">↓${slot.alert_min !== null ? slot.alert_min : '-'} | ↑${slot.alert_max !== null ? slot.alert_max : '-'}</div>` : ''}
                         <div class="slot-location">${slot.location || ''}</div>
                         <div class="slot-time">${d ? formatTime(d.created_at) : ''}</div>
                     </div>`;
@@ -204,8 +241,15 @@
             if (chartSlots.length > 0) {
                 html += `<div class="slots-section"><h3>📈 ${txt.chart}</h3><div class="charts-grid">`;
                 chartSlots.forEach(slot => {
-                    html += `<div class="slot-card chart-card">
-                        <div class="slot-name">${slot.name}</div>
+                    const d = data[slot.slot_number];
+                    const alertState = alertsStatus[slot.slot_number];
+                    const alertClass = alertState ? (alertState.type === 'high' ? 'alert-high' : 'alert-low') : '';
+                    const alertIndicator = alertState ? `<div class="alert-indicator ${alertState.type}">${alertState.type === 'high' ? '🔴 ' + txt.alertHigh : '🔵 ' + txt.alertLow}</div>` : '';
+                    
+                    html += `<div class="slot-card chart-card ${alertClass}">
+                        ${alertIndicator}
+                        <div class="slot-name">${slot.name} ${d ? `<span class="current-value ${alertClass}">${d.value}${slot.unit || ''}</span>` : ''}</div>
+                        ${slot.alert_enabled ? `<div class="slot-thresholds">↓${slot.alert_min !== null ? slot.alert_min : '-'} | ↑${slot.alert_max !== null ? slot.alert_max : '-'}</div>` : ''}
                         <canvas id="chart-${slot.slot_number}"></canvas>
                         <div class="slot-location">${slot.location || ''}</div>
                     </div>`;
@@ -277,6 +321,59 @@
                 }
             }
         }
+        
+        // ===== ALERTS FUNCTIONS =====
+        async function toggleAlertsPanel() {
+            const panel = document.getElementById('alerts-panel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                await loadAlerts();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        async function loadAlerts() {
+            const data = await apiCall('/api/alerts?limit=20');
+            if (!data || !data.success) return;
+            
+            alertsData = data.data || [];
+            const list = document.getElementById('alerts-list');
+            
+            if (alertsData.length === 0) {
+                list.innerHTML = `<p class="text-center no-alerts">✅ ${txt.noAlerts}</p>`;
+                return;
+            }
+            
+            list.innerHTML = alertsData.map(alert => `
+                <div class="alert-item ${alert.is_read ? 'read' : 'unread'} ${alert.alert_type}">
+                    <div class="alert-icon">${alert.alert_type === 'high' ? '🔴' : '🔵'}</div>
+                    <div class="alert-content">
+                        <div class="alert-slot">${alert.icon || '📟'} ${alert.slot_name || 'Slot ' + alert.slot_number}</div>
+                        <div class="alert-message">${alert.message}</div>
+                        <div class="alert-time">${formatTime(alert.created_at)}</div>
+                    </div>
+                    ${!alert.is_read ? `<button class="btn btn-sm btn-mark-read" onclick="markAlertRead(${alert.id})">✓</button>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        async function markAlertRead(alertId) {
+            const res = await apiCall(`/api/alerts/${alertId}/read`, 'PUT');
+            if (res && res.success) {
+                loadAlerts();
+                loadDashboard();
+            }
+        }
+        
+        async function markAllAlertsRead() {
+            const res = await apiCall('/api/alerts/read-all', 'PUT');
+            if (res && res.success) {
+                loadAlerts();
+                loadDashboard();
+            }
+        }
+        
         function startClock() {
             const el = document.getElementById('clock');
             if (!el) return;
